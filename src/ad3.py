@@ -37,52 +37,70 @@ def filter_leave_one(call, input_list):
             out.append(v)
     return out
 
+# reimlementing invert_bits using strings because handling leading 0's is causing issues.
+def invert_bits_str(bin:str)->str:
+    # invert the bits using str replacements
+    return bin.replace("0", "x").replace("1", "0").replace("x", "1")
+# poor man's unit tests
+# print(invert_bits_str("00000"))
+# print(invert_bits_str("11111"))
+# print(invert_bits_str("110011"))
+# print(invert_bits_str("001100"))
+
+def get_most_common_bits_str(datalist:List[str])->str:
+    # find most common bits by adding up all bits in each position, and checking if
+    # the total is greater than half of the lenth of the data
+    totals = [0]*len(datalist[0])
+    for line in datalist:
+        for pos, ch in enumerate(line):
+            totals[pos] += int(ch)
+    most_common_bits = list(map(lambda count: int((len(datalist)/2)-count <= 0), totals))
+    return "".join(str(i) for i in most_common_bits)
+
+# compare the new implementations to the old
+# mcb_str = get_most_common_bits_str(data)
+# lcb_str = invert_bits_str(mcb_str)
+# print(p1_mcb, p1_lcb, int(mcb_str, 2), int(lcb_str, 2))
+
+# for posterity, my old version used something like:
+# divisor = 2**(bit_len-filter_bit_pos)
+# check_qty = divisor/2
+# filter_leave_one(lambda n: (int(n, 2)%divisor)>check_qty, datalist)
 
 def O2Filter(datalist:List[str])->str:
     bit_len = len(datalist[0])
     for filter_bit_pos in range(0, bit_len):
-        mcb = str(format(get_most_common_bits(datalist), 'b')).zfill(bit_len)
+        mcb = get_most_common_bits_str(datalist)
         filter_bit = mcb[filter_bit_pos]
-        divisor = 2**(bit_len-filter_bit_pos)
-        check_qty = divisor/2
-        if int(filter_bit):
-            datalist = filter_leave_one(lambda n: (int(n, 2)%divisor)>check_qty, datalist)
-        else:
-            datalist = filter_leave_one(lambda n: (int(n, 2)%divisor)<=check_qty, datalist)
+        datalist = filter_leave_one(lambda n: n[filter_bit_pos] == filter_bit, datalist)
     return datalist[0]
 
 def CO2Filter(datalist:List[str])->str:
     bit_len = len(datalist[0])
     for filter_bit_pos in range(0, bit_len):
-        print("")
-        print(bin(get_most_common_bits(datalist)))
-        lcb = invert_bits(get_most_common_bits(datalist))
-        filter_bit = format(lcb,'b').zfill(bit_len)[filter_bit_pos]
-        print(f"lcb: {format(lcb,'b').zfill(bit_len)}[{filter_bit_pos}] = {filter_bit}")
-        print(datalist)
-        divisor = 2**(bit_len-filter_bit_pos)
-        check_qty = divisor/2
-        if int(filter_bit):
-            datalist = filter_leave_one(lambda n: (int(n, 2)%divisor)>=check_qty, datalist)
-        else:
-            datalist = filter_leave_one(lambda n: (int(n, 2)%divisor)<check_qty, datalist)
+        lcb = invert_bits_str(get_most_common_bits_str(datalist))
+        filter_bit = lcb[filter_bit_pos]
+        datalist = filter_leave_one(lambda n: n[filter_bit_pos] == filter_bit, datalist)
     return datalist[0]
 
-tst = ['00100',
-'11110',
-'10110',
-'10111',
-'10101',
-'01111',
-'00111',
-'11100',
-'10000',
-'11001',
-'00010',
-'01010']
-
-
+# tst = ['00100',
+# '11110',
+# '10110',
+# '10111',
+# '10101',
+# '01111',
+# '00111',
+# '11100',
+# '10000',
+# '11001',
+# '00010',
+# '01010']
+#
 # res = O2Filter(tst)
-# print(res)
-res = CO2Filter(tst)
-print(res)
+# print(res, int(res, 2))
+# res = CO2Filter(tst)
+# print(res, int(res, 2))
+
+p2_a = int(O2Filter(data), 2)
+p2_b = int(CO2Filter(data), 2)
+print("Part 2: ", p2_a*p2_b)
